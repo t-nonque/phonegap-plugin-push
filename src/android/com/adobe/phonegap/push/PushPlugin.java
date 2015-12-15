@@ -54,6 +54,7 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
                     SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(COM_ADOBE_PHONEGAP_PUSH, Context.MODE_PRIVATE);
                     String token = null;
                     String senderID = null;
+                    String force_register = "0";
 
                     try {
                         jo = data.getJSONObject(0).getJSONObject(ANDROID);
@@ -62,17 +63,15 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
 
                         senderID = jo.getString(SENDER_ID);
 
+                        force_register = data.getJSONObject(0).getString(FORCE_REGISTER);
+
                         Log.v(LOG_TAG, "execute: senderID=" + senderID);
 
                         String savedSenderID = sharedPref.getString(SENDER_ID, "");
                         String savedRegID = sharedPref.getString(REGISTRATION_ID, "");
 
-                        // first time run get new token
-                        if ("".equals(savedRegID)) {
-                            token = InstanceID.getInstance(getApplicationContext()).getToken(senderID, GCM);
-                        }
-                        // new sender ID, re-register
-                        else if (!savedSenderID.equals(senderID)) {
+                        // first time run OR new sender id OR force register, re-register
+                        if ("".equals(savedRegID) || !savedSenderID.equals(senderID) || "1".equals(force_register)) {
                             token = InstanceID.getInstance(getApplicationContext()).getToken(senderID, GCM);
                         }
                         // use the saved one
